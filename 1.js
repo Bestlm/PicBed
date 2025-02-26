@@ -1,26 +1,25 @@
 // ==MiruExtension==
-// @name         OneJav
+// @name         Missav
 // @version      v0.0.1
-// @author       OshekharO
-// @lang         jp
+// @lang         zh-cn
 // @license      MIT
-// @package      onejav.com
+// @package      missav.ws
 // @type         bangumi
-// @icon         https://onejav.com/static/img/onejav.5468a5a7d373.png
-// @webSite      https://onejav.com
+// @icon         https://missav.ws/favicon.ico
+// @webSite      https://missav.ws
 // @nsfw         true
 // ==/MiruExtension==
 
 export default class extends Extension {
   async latest() {
-    const res = await this.request("/popular/");
-    const bsxList = await this.querySelectorAll(res, "div.card.mb-3");
+    const res = await this.request("/latest-updates");
+    const bsxList = await this.querySelectorAll(res, "div.item");
     const novel = [];
     for (const element of bsxList) {
       const html = await element.content;
-      const url = await this.getAttributeText(html, "h5.title.is-4.is-spaced > a", "href");
-      const title = await this.querySelector(html, "h5.title.is-4.is-spaced > a").text;
-      const cover = await this.querySelector(html, ".image").getAttributeText("src");
+      const url = await this.getAttributeText(html, "a", "href");
+      const title = await this.querySelector(html, "a").text;
+      const cover = await this.getAttributeText(html, "img", "data-src");
       novel.push({
         title: title.trim(),
         url,
@@ -31,15 +30,15 @@ export default class extends Extension {
   }
 
   async search(kw) {
-    const res = await this.request(`/search/${kw}`);
-    const bsxList = await this.querySelectorAll(res, "div.card.mb-3");
+    const res = await this.request(`/search?query=${kw}`);
+    const bsxList = await this.querySelectorAll(res, "div.item");
     const novel = [];
 
     for (const element of bsxList) {
       const html = await element.content;
-      const url = await this.getAttributeText(html, "h5.title.is-4.is-spaced > a", "href");
-      const title = await this.querySelector(html, "h5.title.is-4.is-spaced > a").text;
-      const cover = await this.querySelector(html, ".image").getAttributeText("src");
+      const url = await this.getAttributeText(html, "a", "href");
+      const title = await this.querySelector(html, "a").text;
+      const cover = await this.getAttributeText(html, "img", "data-src");
       novel.push({
         title: title.trim(),
         url,
@@ -52,24 +51,24 @@ export default class extends Extension {
   async detail(url) {
     const res = await this.request(`${url}`, {
       headers: {
-        "miru-referer": "https://onejav.com/",
+        "miru-referer": "https://missav.ws/",
       },
     });
 
-    const title = await this.querySelector(res, "h5.title.is-4.is-spaced > a").text;
-    const cover = await this.querySelector(res, ".image").getAttributeText("src");
-    const desc = await this.querySelector(res, "p.level.has-text-grey-dark").text;
+    const title = await this.querySelector(res, "h1.title").text;
+    const cover = await this.getAttributeText(res, ".video-cover img", "data-src");
+    const desc = await this.querySelector(res, ".video-description").text;
 
     const episodes = [];
-    const epiList = await this.querySelectorAll(res, "p.control.is-expanded");
+    const epiList = await this.querySelectorAll(res, ".episode-list a");
 
     for (const element of epiList) {
       const html = await element.content;
-      const name = await this.querySelector(html, "a").text;
+      const name = await this.querySelector(html, ".episode-title").text;
       const url = await this.getAttributeText(html, "a", "href");
 
       episodes.push({
-        name: `Stream Torrent`,
+        name: name.trim(),
         url,
       });
     }
@@ -80,7 +79,7 @@ export default class extends Extension {
       desc: desc.trim(),
       episodes: [
         {
-          title: "Directory",
+          title: "Episodes",
           urls: episodes,
         },
       ],
@@ -88,10 +87,15 @@ export default class extends Extension {
   }
 
   async watch(url) {
-    const torrent = `https://onejav.com    ${url}`;
+    const res = await this.request(url, {
+      headers: {
+        "miru-referer": "https://missav.ws/",
+      },
+    });
+    const videoUrl = await this.getAttributeText(res, "video source", "src");
     return {
-      type: "torrent",
-      url: torrent,
+      type: "video",
+      url: videoUrl,
     };
   }
 }

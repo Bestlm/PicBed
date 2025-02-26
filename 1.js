@@ -86,9 +86,9 @@ export default class extends Extension {
     const items = await this.querySelectorAll(res, "div.card");
     const results = items.map(async (element) => {
       const html = await element.content;
-      const url = await this.getAttributeText(html, "a", "href");
-      const title = await this.getAttributeText(html, "a", "title");
-      const cover = await this.getAttributeText(html, "img", "src");
+      const url = (await this.getAttributeText(html, "a", "href")) || "";
+      const title = (await this.getAttributeText(html, "a", "title")) || "";
+      const cover = (await this.getAttributeText(html, "img", "src")) || "";
       return { title, url, cover };
     });
     return await Promise.all(results);
@@ -96,13 +96,13 @@ export default class extends Extension {
 
   async detail(url) {
     const res = await this.$req(url, { headers: { "Miru-Url": this.domain } });
-    const title = await this.querySelector(res, "h1.title").text;
-    const cover = await this.getAttributeText(res, ".cover img", "src");
+    const title = (await this.querySelector(res, "h1.title").text) || "";
+    const cover = (await this.getAttributeText(res, ".cover img", "src")) || "";
     const episodes = [];
     const episodeElements = await this.querySelectorAll(res, ".episode-list li");
     for (let element of episodeElements) {
-      const name = await this.querySelector(element, "a").text;
-      const url = await this.getAttributeText(element, "a", "href");
+      const name = (await this.querySelector(element, "a").text) || "";
+      const url = (await this.getAttributeText(element, "a", "href")) || "";
       episodes.push({ name, url });
     }
     return { title, cover, episodes };

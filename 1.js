@@ -1,13 +1,12 @@
 // ==MiruExtension==
 // @name         missav
 // @version      v0.0.1
-// @author       your_name
-// @lang         zh-cn
+// @language     zh-cn
 // @license      MIT
 // @icon         https://missav.ws/favicon.ico
 // @package      missav.app
 // @type         bangumi
-// @webSite      https://www.missav.ws
+// @website      https://www.missav.ws
 // ==/MiruExtension==
 export default class extends Extension {
   base64decode(str) {
